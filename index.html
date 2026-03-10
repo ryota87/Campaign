@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampaignAI – キャンペーン管理ダッシュボード</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #09090f;
+      --surface: rgba(255,255,255,.04);
+      --border: rgba(255,255,255,.08);
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --accent: #7c3aed;
+      --accent2: #06b6d4;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+      --safe: #10b981;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124,58,237,.25) 0%, transparent 60%);
+    }
+
+    /* ── Layout ── */
+    .page { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+    /* ── Glass Utility ── */
+    .glass {
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 2rem;
+      margin: 1.5rem 0 2.5rem;
+    }
+    .logo { display: flex; align-items: center; gap: .75rem; }
+    .logo svg { color: #a78bfa; filter: drop-shadow(0 0 8px rgba(167,139,250,.5)); }
+    .logo h1 {
+      font-size: 1.4rem; font-weight: 700; letter-spacing: -.4px;
+      background: linear-gradient(135deg,#fff,#a78bfa); -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .icon-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(255,255,255,.06); border: 1px solid var(--border);
+      color: var(--text); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: .2s; position: relative;
+    }
+    .icon-btn:hover { background: rgba(255,255,255,.14); transform: translateY(-2px); }
+    .badge {
+      position: absolute; top: -2px; right: -2px; width: 17px; height: 17px;
+      border-radius: 50%; background: var(--danger); color: #fff;
+      font-size: .65rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--bg);
+    }
+    .avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 2px solid #7c3aed; overflow: hidden; cursor: pointer;
+      box-shadow: 0 0 12px rgba(124,58,237,.3);
+      background: linear-gradient(135deg,#7c3aed,#06b6d4);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .9rem;
+    }
+
+    /* ── URL Input ── */
+    .input-section { margin-bottom: 3rem; }
+    .input-hero { text-align: center; margin-bottom: 1.75rem; }
+    .input-hero h2 {
+      font-size: 2.2rem; font-weight: 700; margin-bottom: .5rem;
+      background: linear-gradient(135deg,#fff 40%,#a78bfa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .input-hero p { color: var(--muted); font-size: 1rem; }
+
+    .url-form {
+      display: flex; align-items: center; gap: 0;
+      padding: .45rem .45rem .45rem 1.5rem;
+      border-radius: 60px; max-width: 720px; margin: 0 auto;
+      transition: border-color .3s, box-shadow .3s;
+    }
+    .url-form:focus-within {
+      border-color: rgba(124,58,237,.5);
+      box-shadow: 0 0 0 3px rgba(124,58,237,.15);
+    }
+    .url-form .link-icon { color: var(--muted); flex-shrink: 0; margin-right: .75rem; }
+    .url-form input {
+      flex: 1; background: transparent; border: none; outline: none;
+      font-size: 1rem; color: var(--text); font-family: inherit;
+    }
+    .url-form input::placeholder { color: rgba(255,255,255,.25); }
+    .submit-btn {
+      height: 46px; padding: 0 1.75rem; border-radius: 60px;
+      background: linear-gradient(135deg,#7c3aed,#06b6d4);
+      border: none; color: #fff; font-weight: 600; font-size: .95rem;
+      cursor: pointer; display: flex; align-items: center; gap: .5rem;
+      transition: opacity .2s, transform .2s; white-space: nowrap;
+    }
+    .submit-btn:hover:not(:disabled) { opacity: .9; transform: scale(1.03); }
+    .submit-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+    .progress-bar {
+      height: 2px; border-radius: 2px; background: rgba(255,255,255,.08);
+      max-width: 720px; margin: .75rem auto 0; overflow: hidden;
+      display: none;
+    }
+    .progress-bar.active { display: block; }
+    .progress-bar-fill {
+      height: 100%; width: 35%;
+      background: linear-gradient(90deg,#7c3aed,#06b6d4);
+      animation: sweep 1.4s ease-in-out infinite alternate;
+    }
+    @keyframes sweep {
+      from { transform: translateX(0); }
+      to   { transform: translateX(186%); }
+    }
+
+    /* ── Dashboard ── */
+    .dash-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.75rem;
+    }
+    .dash-header h2 { font-size: 1.5rem; font-weight: 600; }
+    .sort-tag {
+      display: flex; align-items: center; gap: .5rem;
+      padding: .4rem 1rem; border-radius: 20px; font-size: .85rem;
+      color: #a78bfa;
+    }
+
+    /* ── Cards Grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* ── Campaign Card ── */
+    .card {
+      display: flex; flex-direction: column;
+      padding: 1.5rem; position: relative; overflow: hidden;
+      transition: transform .35s cubic-bezier(.175,.885,.32,1.275), box-shadow .3s;
+      animation: fadeUp .45s ease forwards;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0;
+      right: 0; height: 3px;
+      background: linear-gradient(90deg,#7c3aed,#06b6d4);
+    }
+    .card.expired { opacity: .55; filter: grayscale(.5); }
+    .card.expired::before { background: var(--muted); }
+    .card:not(.expired):hover {
+      transform: translateY(-8px);
+      box-shadow: 0 16px 40px rgba(0,0,0,.5), 0 0 20px rgba(124,58,237,.12);
+      border-color: rgba(124,58,237,.3);
+    }
+
+    /* Card internals */
+    .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.1rem; }
+    .expiry-chip {
+      display: flex; align-items: center; gap: .3rem;
+      padding: .2rem .7rem; border-radius: 20px; font-size: .75rem; font-weight: 600;
+    }
+    .chip-danger  { background: rgba(239,68,68,.18); color: #fca5a5; border: 1px solid rgba(239,68,68,.3); }
+    .chip-warn    { background: rgba(245,158,11,.18); color: #fcd34d; border: 1px solid rgba(245,158,11,.3); }
+    .chip-safe    { background: rgba(16,185,129,.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,.2); }
+    .chip-expired { background: rgba(255,255,255,.07); color: var(--muted); border: 1px solid rgba(255,255,255,.1); }
+
+    .source-link {
+      display: flex; align-items: center; gap: .25rem;
+      color: var(--muted); font-size: .78rem; text-decoration: none;
+      padding: .2rem .5rem; border-radius: 6px; background: rgba(255,255,255,.04);
+      transition: .2s;
+    }
+    .source-link:hover { color: var(--text); background: rgba(255,255,255,.12); }
+
+    .card-title {
+      font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem;
+      background: linear-gradient(135deg,#fff 30%,#c4b5fd);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      line-height: 1.35;
+    }
+
+    .details { background: rgba(0,0,0,.2); border-radius: 10px; padding: .9rem; display: flex; flex-direction: column; gap: .75rem; }
+    .detail-row { display: flex; align-items: flex-start; gap: .65rem; }
+    .detail-icon { color: var(--accent2); flex-shrink: 0; margin-top: 2px; }
+    .detail-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+    .detail-val   { font-size: .9rem; color: #e2e8f0; font-weight: 500; }
+
+    .card-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 1.25rem; padding-top: 1rem;
+      border-top: 1px dashed rgba(255,255,255,.08);
+    }
+    .date-label { font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: .4rem; }
+    .action-btn {
+      padding: .4rem 1rem; border-radius: 20px; font-size: .82rem; font-weight: 600; cursor: pointer;
+      background: rgba(124,58,237,.15); color: #c4b5fd;
+      border: 1px solid rgba(124,58,237,.35); transition: .2s;
+    }
+    .action-btn:hover { background: linear-gradient(135deg,#7c3aed,#06b6d4); color: #fff; border-color: transparent; }
+
+    /* ── Empty State ── */
+    .empty {
+      text-align: center; padding: 4rem 2rem; color: var(--muted);
+      border: 1px dashed rgba(255,255,255,.15); border-radius: 16px; line-height: 1.7;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      background: rgba(16,185,129,.2); border: 1px solid rgba(16,185,129,.4);
+      color: #6ee7b7; padding: .75rem 1.5rem; border-radius: 12px;
+      font-size: .9rem; font-weight: 500;
+      backdrop-filter: blur(12px);
+      opacity: 0; transform: translateY(20px);
+      transition: all .4s ease;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Header -->
+  <header class="glass">
+    <div class="logo">
+      <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+        <path d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
+      </svg>
+      <h1>Campaign<span style="font-weight:300;opacity:.8">AI</span></h1>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" title="通知">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+        </svg>
+        <span class="badge">3</span>
+      </button>
+      <div class="avatar">U</div>
+    </div>
+  </header>
+
+  <!-- URL Input -->
+  <section class="input-section">
+    <div class="input-hero">
+      <h2>キャンペーンを分析する</h2>
+      <p>X（旧Twitter）や企業HPのURLを入力すると、AIがキャンペーン内容を要約します</p>
+    </div>
+    <form class="url-form glass" id="urlForm" onsubmit="handleSubmit(event)">
+      <svg class="link-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
+      </svg>
+      <input type="url" id="urlInput" placeholder="https://x.com/company/status/..." required />
+      <button type="submit" class="submit-btn" id="submitBtn">
+        <span id="btnLabel">分析する</span>
+        <svg id="btnIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+        </svg>
+      </button>
+    </form>
+    <div class="progress-bar" id="progressBar"><div class="progress-bar-fill"></div></div>
+  </section>
+
+  <!-- Dashboard -->
+  <section>
+    <div class="dash-header">
+      <h2 id="campaignCount">登録キャンペーン</h2>
+      <div class="sort-tag glass">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75l2.25 2.25 2.25-2.25M15.75 12v8.25"/>
+        </svg>
+        期限が近い順
+      </div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">✓ キャンペーンを追加しました</div>
+
+<script>
+  // ── Utilities ──
+  const fmt = (iso) => {
+    const d = new Date(iso);
+    return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+  };
+  const daysLeft = (iso) => {
+    const diff = new Date(iso) - new Date();
+    return Math.ceil(diff / 86400000);
+  };
+  const timeLabel = (iso) => {
+    const d = daysLeft(iso);
+    if (d < 0)  return { text: '期限切れ', cls: 'chip-expired' };
+    if (d === 0) return { text: '今日まで！', cls: 'chip-danger' };
+    if (d <= 3)  return { text: `残り${d}日`, cls: 'chip-danger' };
+    if (d <= 7)  return { text: `残り${d}日`, cls: 'chip-warn' };
+    return { text: `残り${d}日`, cls: 'chip-safe' };
+  };
+
+  // ── Mock Data ──
+  const add = (days) => new Date(Date.now() + days*86400000).toISOString();
+  let campaigns = [
+    {
+      id: 1, url: 'https://x.com/7eleven_jp/status/1',
+      sourceType: 'X', store: 'セブン-イレブン全店舗',
+      product: '対象アイスクリーム', payment: 'PayPay',
+      summary: 'PayPay決済でアイス半額還元！', expiry: add(2)
+    },
+    {
+      id: 2, url: 'https://www.yodobashi.com/campaign/456',
+      sourceType: 'HP', store: 'ヨドバシカメラ全店',
+      product: 'Apple製品（一部を除く）', payment: 'ゴールドポイントカード+',
+      summary: 'Apple購入でポイント20%還元', expiry: add(5)
+    },
+    {
+      id: 3, url: 'https://x.com/aeon_jp/status/789',
+      sourceType: 'X', store: 'イオン系列スーパー',
+      product: '食料品・日用品全般', payment: 'AEON Pay',
+      summary: 'AEON Pay 初回利用で10%オフ', expiry: add(14)
+    },
+    {
+      id: 4, url: 'https://x.com/matsukiyo/status/999',
+      sourceType: 'X', store: 'マツモトキヨシ',
+      product: '日用品・医薬品・化粧品', payment: 'd払い',
+      summary: 'd払い祭 最大30%ポイントバック', expiry: add(-1)
+    }
+  ];
+
+  // ── Render ──
+  function render() {
+    const sorted = [...campaigns].sort((a,b) => new Date(a.expiry) - new Date(b.expiry));
+    const grid = document.getElementById('grid');
+    const count = document.getElementById('campaignCount');
+    count.textContent = `登録キャンペーン（${campaigns.length}件）`;
+
+    if (!sorted.length) {
+      grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+        キャンペーンが登録されていません。<br>
+        上の入力欄からURLを貼り付けてみましょう。
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = sorted.map((c, i) => {
+      const chip = timeLabel(c.expiry);
+      const expired = daysLeft(c.expiry) < 0;
+      return `
+        <article class="card glass ${expired ? 'expired' : ''}" style="animation-delay:${i*0.08}s">
+          <div class="card-top">
+            <span class="expiry-chip ${chip.cls}">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>
+              </svg>
+              ${chip.text}
+            </span>
+            <a href="${c.url}" target="_blank" class="source-link">
+              ${c.sourceType}
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="card-title">${c.summary}</div>
+
+          <div class="details">
+            <div class="detail-row">
+              <svg class="detail-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/>
+              </svg>
+              <div><div class="detail-label">対象店舗</div><div class="detail-val">${c.store}</div></div>
+            </div>
+            <div class="detail-row">
+              <svg class="detail-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><path d="M6 6h.008v.008H6V6z"/>
+              </svg>
+              <div><div class="detail-label">対象商品</div><div class="detail-val">${c.product}</div></div>
+            </div>
+            <div class="detail-row">
+              <svg class="detail-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
+              </svg>
+              <div><div class="detail-label">決済手段</div><div class="detail-val">${c.payment}</div></div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <span class="date-label">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+              </svg>
+              期限: ${fmt(c.expiry)}
+            </span>
+            <button class="action-btn" onclick="chatAbout(${c.id})">詳細・活用相談</button>
+          </div>
+        </article>`;
+    }).join('');
+  }
+
+  // ── AI Chat stub ──
+  function chatAbout(id) {
+    const c = campaigns.find(x => x.id === id);
+    alert(`💬 AI相談モード（今後実装予定）\n\n「${c.summary}」について相談します。\n\n例: 「${c.store}で${c.product}を${c.payment}で買うと最終的にいくら安くなる？」`);
+  }
+
+  // ── Mock AI summaries ──
+  const mockResponses = [
+    (u) => ({
+      store: 'Amazon.co.jp', product: 'タイムセール対象品', payment: 'Amazonポイント',
+      summary: 'タイムセール × ポイントアップで最大15%OFF',
+      expiry: add(Math.floor(Math.random()*10)+1)
+    }),
+    (u) => ({
+      store: 'ローソン・ファミリーマート', product: '対象チルド飲料', payment: 'メルペイ',
+      summary: 'メルペイ スマート払いで飲料30%還元',
+      expiry: add(Math.floor(Math.random()*6)+1)
+    }),
+    (u) => ({
+      store: 'ビックカメラグループ', product: '家電・PC周辺機器', payment: 'JCBカード',
+      summary: 'JCBカード決済でポイント5倍キャンペーン',
+      expiry: add(Math.floor(Math.random()*20)+3)
+    }),
+  ];
+  let mockIdx = 0;
+
+  // ── Form Submit ──
+  function handleSubmit(e) {
+    e.preventDefault();
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) return;
+
+    // Loading state
+    const btn = document.getElementById('submitBtn');
+    const label = document.getElementById('btnLabel');
+    const bar = document.getElementById('progressBar');
+    btn.disabled = true;
+    label.textContent = 'AI要約中...';
+    bar.classList.add('active');
+
+    setTimeout(() => {
+      const resp = mockResponses[mockIdx % mockResponses.length](url);
+      mockIdx++;
+      const newCampaign = {
+        id: Date.now(),
+        url,
+        sourceType: (url.includes('x.com') || url.includes('twitter.com')) ? 'X' : 'HP',
+        ...resp
+      };
+      campaigns.push(newCampaign);
+      render();
+
+      // Reset
+      btn.disabled = false;
+      label.textContent = '分析する';
+      bar.classList.remove('active');
+      document.getElementById('urlInput').value = '';
+
+      // Toast
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }, 2500);
+  }
+
+  // ── Init ──
+  render();
+</script>
+</body>
+</html>
