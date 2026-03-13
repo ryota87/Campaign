@@ -1,0 +1,63 @@
+﻿
+C:\Users\yanar\Desktop\antigravity\campaign\client\src\components\Home.tsx
+  1:29  error  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\yanar\Desktop\antigravity\campaign\client\src\components\calendar-view.tsx
+  19:43  error  'onDeleteCampaign' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  31:7   error  Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This dependency may be mutated later, which could cause the value to change unexpectedly.
+
+C:\Users\yanar\Desktop\antigravity\campaign\client\src\components\calendar-view.tsx:31:7
+  29 |       { month: (currentMonth + 1) % 12, year: currentMonth === 11 ? currentYear + 1 : currentYear },
+  30 |     ];
+> 31 |   }, [currentMonth, currentYear]);
+     |       ^^^^^^^^^^^^ This dependency may be modified later
+  32 |
+  33 |   const getDaysInMonth = (month: number, year: number) => {
+  34 |     return new Date(year, month + 1, 0).getDate();                react-hooks/preserve-manual-memoization
+  31:21  error  Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This dependency may be mutated later, which could cause the value to change unexpectedly.
+
+C:\Users\yanar\Desktop\antigravity\campaign\client\src\components\calendar-view.tsx:31:21
+  29 |       { month: (currentMonth + 1) % 12, year: currentMonth === 11 ? currentYear + 1 : currentYear },
+  30 |     ];
+> 31 |   }, [currentMonth, currentYear]);
+     |                     ^^^^^^^^^^^ This dependency may be modified later
+  32 |
+  33 |   const getDaysInMonth = (month: number, year: number) => {
+  34 |     return new Date(year, month + 1, 0).getDate();  react-hooks/preserve-manual-memoization
+
+C:\Users\yanar\Desktop\antigravity\campaign\client\src\components\ui\badge.tsx
+  46:17  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\yanar\Desktop\antigravity\campaign\client\src\components\ui\button.tsx
+  58:18  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\yanar\Desktop\antigravity\campaign\client\src\components\ui\form.tsx
+  160:3  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\yanar\Desktop\antigravity\campaign\client\src\components\ui\navigation-menu.tsx
+  167:3  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\yanar\Desktop\antigravity\campaign\client\src\components\ui\sidebar.tsx
+  611:26  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\yanar\Desktop\antigravity\campaign\client\src\components\ui\sidebar.tsx:611:26
+  609 |   // Random width between 50 to 90%.
+  610 |   const width = React.useMemo(() => {
+> 611 |     return `${Math.floor(Math.random() * 40) + 50}%`;
+      |                          ^^^^^^^^^^^^^ Cannot call impure function
+  612 |   }, []);
+  613 |
+  614 |   return (  react-hooks/purity
+  725:3   error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react-refresh/only-export-components
+
+C:\Users\yanar\Desktop\antigravity\campaign\client\src\components\ui\toggle.tsx
+  47:18  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+笨・11 problems (11 errors, 0 warnings)
+
